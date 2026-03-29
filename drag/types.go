@@ -1,5 +1,7 @@
 package drag
 
+import "fmt"
+
 type Kind int
 
 const (
@@ -46,13 +48,17 @@ type Definition struct {
 	rawFunction RawFunction
 }
 
-func NewStandardTable(table Table, bc float64) Definition {
+func NewStandardTable(table Table, bc float64) (Definition, error) {
+	if !isSupportedTable(table) {
+		return Definition{}, fmt.Errorf("unsupported drag table %q", table)
+	}
+
 	return Definition{
 		kind:      KindStandardTable,
 		table:     table,
 		valueType: ValueTypeBC,
 		value:     bc,
-	}
+	}, nil
 }
 
 func NewCustomFunction(valueType ValueType, value float64, rawFunction RawFunction) Definition {
@@ -67,6 +73,15 @@ func NewCustomFunction(valueType ValueType, value float64, rawFunction RawFuncti
 func NewCurveFunction(points []CurvePoint, coefficients CurveCoefficients, evaluator CurveEvaluator) RawFunction {
 	return func(mach float64) float64 {
 		return evaluator(points, coefficients, mach)
+	}
+}
+
+func isSupportedTable(table Table) bool {
+	switch table {
+	case TableG1, TableG2, TableG5, TableG6, TableG7, TableG8, TableGS, TableRA4:
+		return true
+	default:
+		return false
 	}
 }
 

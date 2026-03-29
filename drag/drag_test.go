@@ -6,27 +6,56 @@ import (
 	"github.com/ponchione/ballistic_calc/drag"
 )
 
-func TestNewStandardTableReturnsStandardTableDefinition(t *testing.T) {
-	definition := drag.NewStandardTable(drag.TableG7, 0.223)
-
-	if got := definition.Kind(); got != drag.KindStandardTable {
-		t.Fatalf("Kind() = %v, want %v", got, drag.KindStandardTable)
+func TestNewStandardTableReturnsDefinitionForEachSupportedTable(t *testing.T) {
+	tables := []drag.Table{
+		drag.TableG1,
+		drag.TableG2,
+		drag.TableG5,
+		drag.TableG6,
+		drag.TableG7,
+		drag.TableG8,
+		drag.TableGS,
+		drag.TableRA4,
 	}
 
-	if got := definition.Table(); got != drag.TableG7 {
-		t.Fatalf("Table() = %v, want %v", got, drag.TableG7)
+	for _, table := range tables {
+		t.Run(string(table), func(t *testing.T) {
+			definition, err := drag.NewStandardTable(table, 0.223)
+			if err != nil {
+				t.Fatalf("NewStandardTable(%q) returned error: %v", table, err)
+			}
+
+			if got := definition.Kind(); got != drag.KindStandardTable {
+				t.Fatalf("Kind() = %v, want %v", got, drag.KindStandardTable)
+			}
+
+			if got := definition.Table(); got != table {
+				t.Fatalf("Table() = %v, want %v", got, table)
+			}
+
+			if got := definition.ValueType(); got != drag.ValueTypeBC {
+				t.Fatalf("ValueType() = %v, want %v", got, drag.ValueTypeBC)
+			}
+
+			if got := definition.Value(); got != 0.223 {
+				t.Fatalf("Value() = %v, want 0.223", got)
+			}
+
+			if got := definition.RawFunction(); got != nil {
+				t.Fatalf("RawFunction() = %v, want nil", got)
+			}
+		})
+	}
+}
+
+func TestNewStandardTableRejectsUnknownIdentifierWithoutPanic(t *testing.T) {
+	definition, err := drag.NewStandardTable(drag.Table("NOPE"), 0.223)
+	if err == nil {
+		t.Fatal("NewStandardTable() error = nil, want rejection")
 	}
 
-	if got := definition.ValueType(); got != drag.ValueTypeBC {
-		t.Fatalf("ValueType() = %v, want %v", got, drag.ValueTypeBC)
-	}
-
-	if got := definition.Value(); got != 0.223 {
-		t.Fatalf("Value() = %v, want 0.223", got)
-	}
-
-	if got := definition.RawFunction(); got != nil {
-		t.Fatalf("RawFunction() = %v, want nil", got)
+	if got := definition.Kind(); got != 0 {
+		t.Fatalf("Kind() = %v, want zero definition after rejection", got)
 	}
 }
 

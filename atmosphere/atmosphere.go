@@ -1,6 +1,12 @@
 package atmosphere
 
-import "github.com/ponchione/ballistic_calc/units"
+import (
+	"errors"
+
+	"github.com/ponchione/ballistic_calc/units"
+)
+
+var errInvalidHumidity = errors.New("humidity must be in [0, 1] or (1, 100]")
 
 type Atmosphere struct {
 	altitude    units.Distance
@@ -16,6 +22,22 @@ func Default() Atmosphere {
 		temperature: units.NewTemperature(59, units.TemperatureFahrenheit),
 		humidity:    0.78,
 	}
+}
+
+func New(altitude units.Distance, pressure units.Pressure, temperature units.Temperature, humidity float64) (Atmosphere, error) {
+	switch {
+	case humidity < 0 || humidity > 100:
+		return Atmosphere{}, errInvalidHumidity
+	case humidity > 1:
+		humidity /= 100
+	}
+
+	return Atmosphere{
+		altitude:    altitude,
+		pressure:    pressure,
+		temperature: temperature,
+		humidity:    humidity,
+	}, nil
 }
 
 func (a Atmosphere) Altitude() units.Distance {

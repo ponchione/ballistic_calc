@@ -33,6 +33,10 @@ func NewAngle(value float64, unit AngleUnit) Angle {
 		return Angle{radians: value / 1000}
 	case AngleThousand:
 		return Angle{radians: value / 3000 * math.Pi}
+	case AngleInPer100Yard:
+		return Angle{radians: math.Atan(value / 3600)}
+	case AngleCmPer100Meter:
+		return Angle{radians: math.Atan(value / 10000)}
 	default:
 		panic("unknown angle unit")
 	}
@@ -52,6 +56,10 @@ func (a Angle) In(unit AngleUnit) float64 {
 		return a.radians * 1000
 	case AngleThousand:
 		return a.radians / math.Pi * 3000
+	case AngleInPer100Yard:
+		return math.Tan(a.radians) * 3600
+	case AngleCmPer100Meter:
+		return math.Tan(a.radians) * 10000
 	default:
 		panic("unknown angle unit")
 	}

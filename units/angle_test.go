@@ -16,3 +16,13 @@ func TestAngleMilMradThousand(t *testing.T) {
 	almostEqual(t, NewAngle(1, AngleMilliradian).In(AngleRadian), 0.001, 1e-12)
 	almostEqual(t, NewAngle(1, AngleThousand).In(AngleRadian), math.Pi/3000, 1e-12)
 }
+
+func TestAngleLinearPerDistanceUnitsUseGeometry(t *testing.T) {
+	almostEqual(t, NewAngle(1, AngleInPer100Yard).In(AngleRadian), math.Atan(1.0/3600.0), 1e-12)
+	almostEqual(t, NewAngle(1, AngleCmPer100Meter).In(AngleRadian), math.Atan(1.0/10000.0), 1e-12)
+}
+
+func TestAngleLinearPerDistanceRoundTrips(t *testing.T) {
+	almostEqual(t, NewAngle(1, AngleInPer100Yard).In(AngleInPer100Yard), 1, 1e-12)
+	almostEqual(t, NewAngle(1, AngleCmPer100Meter).In(AngleCmPer100Meter), 1, 1e-12)
+}

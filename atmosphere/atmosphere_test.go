@@ -115,6 +115,14 @@ func TestNewICAOReturnsExpectedSpotCheckAt5000Feet(t *testing.T) {
 	almostEqual(t, atmosphere.Humidity(), 0, 0)
 }
 
+func TestDefaultDensityFactorMatchesSection64Formula(t *testing.T) {
+	almostEqual(t, Default().DensityFactor(), 0.9999443715552248, 1e-12)
+}
+
+func TestDefaultSpeedOfSoundMatchesSection64Formula(t *testing.T) {
+	almostEqual(t, Default().SpeedOfSound().In(units.VelocityFootPerSecond), 1116.4499224539381, 1e-9)
+}
+
 func almostEqual(t *testing.T, got, want, tol float64) {
 	t.Helper()
 	if math.Abs(got-want) > tol {

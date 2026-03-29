@@ -1,6 +1,7 @@
 package units
 
 import (
+	"fmt"
 	"math"
 	"testing"
 )
@@ -25,4 +26,14 @@ func TestAngleLinearPerDistanceUnitsUseGeometry(t *testing.T) {
 func TestAngleLinearPerDistanceRoundTrips(t *testing.T) {
 	almostEqual(t, NewAngle(1, AngleInPer100Yard).In(AngleInPer100Yard), 1, 1e-12)
 	almostEqual(t, NewAngle(1, AngleCmPer100Meter).In(AngleCmPer100Meter), 1, 1e-12)
+}
+
+func TestAngularSpecInvariants(t *testing.T) {
+	a := NewAngle(1, AngleInPer100Yard)
+	almostEqual(t, a.In(AngleMOA), 0.954930, 1e-5)
+
+	got := fmt.Sprintf("%.2fcm/100m", a.In(AngleCmPer100Meter))
+	if got != "2.78cm/100m" {
+		t.Fatalf("got %q want %q", got, "2.78cm/100m")
+	}
 }

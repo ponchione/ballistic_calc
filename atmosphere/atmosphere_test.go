@@ -123,6 +123,102 @@ func TestDefaultSpeedOfSoundMatchesSection64Formula(t *testing.T) {
 	almostEqual(t, Default().SpeedOfSound().In(units.VelocityFootPerSecond), 1116.4499224539381, 1e-9)
 }
 
+func TestNewLocalConditionsStartWithBaseAtmosphereValues(t *testing.T) {
+	base, err := New(
+		units.NewDistance(500, units.DistanceFoot),
+		units.NewPressure(28, units.PressureInchMercury),
+		units.NewTemperature(70, units.TemperatureFahrenheit),
+		0.5,
+	)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	local := NewLocalConditions(base)
+
+	almostEqual(t, local.DensityFactor(), 0.9163427629511216, 1e-12)
+	almostEqual(t, local.SpeedOfSound().In(units.VelocityFootPerSecond), 1128.2266945155989, 1e-9)
+}
+
+func TestLocalConditionsUpdateRecomputesValuesBeyondThirtyFeetFromBaseAltitude(t *testing.T) {
+	base, err := New(
+		units.NewDistance(500, units.DistanceFoot),
+		units.NewPressure(28, units.PressureInchMercury),
+		units.NewTemperature(70, units.TemperatureFahrenheit),
+		0.5,
+	)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	local := NewLocalConditions(base)
+	local.UpdateForAltitude(units.NewDistance(700, units.DistanceFoot))
+
+	almostEqual(t, local.DensityFactor(), 0.9111037704270233, 1e-12)
+	almostEqual(t, local.SpeedOfSound().In(units.VelocityFootPerSecond), 1127.466826622273, 1e-9)
+}
+
+func TestLocalConditionsUpdateReusesBaseValuesWithinThirtyFeetOfBaseAltitude(t *testing.T) {
+	base, err := New(
+		units.NewDistance(500, units.DistanceFoot),
+		units.NewPressure(28, units.PressureInchMercury),
+		units.NewTemperature(70, units.TemperatureFahrenheit),
+		0.5,
+	)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	local := NewLocalConditions(base)
+	local.UpdateForAltitude(units.NewDistance(520, units.DistanceFoot))
+
+	almostEqual(t, local.DensityFactor(), 0.9163427629511216, 1e-12)
+	almostEqual(t, local.SpeedOfSound().In(units.VelocityFootPerSecond), 1128.2266945155989, 1e-9)
+}
+
+func TestLocalConditionsUpdateRecomputesAtThirtyFeetDifferenceFromBaseAltitude(t *testing.T) {
+	base, err := New(
+		units.NewDistance(500, units.DistanceFoot),
+		units.NewPressure(28, units.PressureInchMercury),
+		units.NewTemperature(70, units.TemperatureFahrenheit),
+		0.5,
+	)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	local := NewLocalConditions(base)
+	local.UpdateForAltitude(units.NewDistance(530, units.DistanceFoot))
+
+	almostEqual(t, local.DensityFactor(), 0.9155554495382884, 1e-12)
+	almostEqual(t, local.SpeedOfSound().In(units.VelocityFootPerSecond), 1128.1127469606085, 1e-9)
+}
+
+func TestLocalConditionsUpdateRefreshesOnlyAfterAltitudeChangesByMoreThanOneMeter(t *testing.T) {
+	base, err := New(
+		units.NewDistance(500, units.DistanceFoot),
+		units.NewPressure(28, units.PressureInchMercury),
+		units.NewTemperature(70, units.TemperatureFahrenheit),
+		0.5,
+	)
+	if err != nil {
+		t.Fatalf("New returned error: %v", err)
+	}
+
+	local := NewLocalConditions(base)
+	local.UpdateForAltitude(units.NewDistance(700, units.DistanceFoot))
+	almostEqual(t, local.DensityFactor(), 0.9111037704270233, 1e-12)
+	almostEqual(t, local.SpeedOfSound().In(units.VelocityFootPerSecond), 1127.466826622273, 1e-9)
+
+	local.UpdateForAltitude(units.NewDistance(703.28084, units.DistanceFoot))
+	almostEqual(t, local.DensityFactor(), 0.9111037704270233, 1e-12)
+	almostEqual(t, local.SpeedOfSound().In(units.VelocityFootPerSecond), 1127.466826622273, 1e-9)
+
+	local.UpdateForAltitude(units.NewDistance(704, units.DistanceFoot))
+	almostEqual(t, local.DensityFactor(), 0.9109992246965521, 1e-12)
+	almostEqual(t, local.SpeedOfSound().In(units.VelocityFootPerSecond), 1127.4516240407038, 1e-9)
+}
+
 func almostEqual(t *testing.T, got, want, tol float64) {
 	t.Helper()
 	if math.Abs(got-want) > tol {

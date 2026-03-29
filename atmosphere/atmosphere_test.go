@@ -91,6 +91,30 @@ func TestNewRejectsHumidityOutsideSupportedRanges(t *testing.T) {
 	}
 }
 
+func TestNewICAOReturnsSeaLevelAtmosphere(t *testing.T) {
+	atmosphere := NewICAO(units.NewDistance(0, units.DistanceFoot))
+
+	if got := atmosphere.Altitude().In(units.DistanceFoot); got != 0 {
+		t.Fatalf("altitude = %v ft, want 0", got)
+	}
+
+	almostEqual(t, atmosphere.Temperature().In(units.TemperatureFahrenheit), 59.0, 1e-4)
+	almostEqual(t, atmosphere.Pressure().In(units.PressureInchMercury), 29.92, 1e-5)
+	almostEqual(t, atmosphere.Humidity(), 0, 0)
+}
+
+func TestNewICAOReturnsExpectedSpotCheckAt5000Feet(t *testing.T) {
+	atmosphere := NewICAO(units.NewDistance(5000, units.DistanceFoot))
+
+	if got := atmosphere.Altitude().In(units.DistanceFoot); got != 5000 {
+		t.Fatalf("altitude = %v ft, want 5000", got)
+	}
+
+	almostEqual(t, atmosphere.Temperature().In(units.TemperatureFahrenheit), 41.1692, 1e-4)
+	almostEqual(t, atmosphere.Pressure().In(units.PressureInchMercury), 24.89488, 1e-5)
+	almostEqual(t, atmosphere.Humidity(), 0, 0)
+}
+
 func almostEqual(t *testing.T, got, want, tol float64) {
 	t.Helper()
 	if math.Abs(got-want) > tol {

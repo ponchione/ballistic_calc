@@ -23,7 +23,7 @@ document owns the internal boundaries used to deliver it.
 
 ## Current implementation
 
-The module currently targets Go 1.25.5 and uses the standard library. It has
+The module currently targets Go 1.27.0 and uses the standard library. It has
 three packages:
 
 | Package | Present behavior | Work remaining for v0.1 |
